@@ -3,18 +3,130 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../App';
 import { Shield } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
+import { io } from 'socket.io-client';
 import './OTPVerification.css';
 
 const OTPVerification = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToast } = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(300); // 5 minutes
   const [canResend, setCanResend] = useState(false);
+  const [loading, setLoading] = useState(false);
   const inputRefs = useRef([]);
+  const socketRef = useRef(null);
+  const verifiedRef = useRef(false);
   const type = location.state?.type || 'login';
-  // Get username from navigation state for further verification
+  // Get username and userId from navigation state
   const username = location.state?.username || '';
+  const userId = location.state?.userId || null;
+  const { refreshAuth } = useContext(AuthContext);
+
+  // Initialize WebSocket connection for registration monitoring
+  useEffect(() => {
+    if (type !== 'register' || !username) return;
+
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
+
+    // Connect to registration namespace
+    const socket = io(`${SOCKET_URL}/registration`, {
+      transports: ['websocket', 'polling']
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('Registration WebSocket connected:', socket.id);
+      // Start monitoring this registration
+      socket.emit('monitor_registration', { username });
+    });
+
+    socket.on('monitoring_started', (data) => {
+      console.log('Monitoring started for:', data.username);
+    });
+
+    socket.on('registration_cancelled', (data) => {
+      console.log('Registration cancelled:', data.username);
+      if (!verifiedRef.current) {
+        showToast('Registration cancelled. Please try again.', 'info');
+        navigate('/register');
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Registration WebSocket disconnected');
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('WebSocket connection error:', err);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socket && socket.connected) {
+        // Only cancel if not verified
+        if (!verifiedRef.current) {
+          socket.emit('cancel_registration', { username });
+        }
+        socket.disconnect();
+      }
+    };
+  }, [username, type, navigate, showToast]);
+
+  // Initialize WebSocket connection for login monitoring
+  useEffect(() => {
+    if (type !== 'login' || !userId) return;
+
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
+
+    // Connect to login namespace
+    const socket = io(`${SOCKET_URL}/login`, {
+      transports: ['websocket', 'polling']
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('Login WebSocket connected:', socket.id);
+      // Start monitoring this login OTP
+      socket.emit('monitor_login', { userId });
+    });
+
+    socket.on('monitoring_started', (data) => {
+      console.log('Login monitoring started for userId:', data.userId);
+    });
+
+    socket.on('login_cancelled', (data) => {
+      console.log('Login cancelled for userId:', data.userId);
+      if (!verifiedRef.current) {
+        showToast('Login session expired. Please try again.', 'info');
+        navigate('/login');
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Login WebSocket disconnected');
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Login WebSocket connection error:', err);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socket && socket.connected) {
+        // Only cancel if not verified
+        if (!verifiedRef.current) {
+          socket.emit('cancel_login', { userId });
+        }
+        socket.disconnect();
+      }
+    };
+  }, [userId, type, navigate, showToast]);
 
   useEffect(() => {
     if (timer > 0) {
@@ -64,52 +176,189 @@ const OTPVerification = () => {
   };
 
   const [error, setError] = useState('');
-  const { refreshAuth } = useContext(AuthContext);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const otpString = otp.join('');
     setError('');
-    if (otpString.length === 6 && username) {
-      try {
-        const response = await fetch('http://localhost:3001/api/auth/verify-otp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: username,
-            otpCode: otpString,
-          }),
-        });
-        if (response.ok) {
-          const data = await response.json();
+    
+    if (otpString.length !== 6) {
+      setError('Please enter the 6-digit code.');
+      showToast('Please enter the complete 6-digit code.', 'error');
+      return;
+    }
+    
+    if (type === 'register' && !username) {
+      setError('Username not found. Please try again.');
+      showToast('Session expired. Please try again.', 'error');
+      navigate('/register');
+      return;
+    }
+    
+    if (type === 'login' && !userId) {
+      setError('Session not found. Please try again.');
+      showToast('Session expired. Please try again.', 'error');
+      navigate('/login');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      
+      // Use different endpoints based on type
+      const endpoint = type === 'register' 
+        ? `${API_URL}/api/auth/verify-registration-otp`
+        : `${API_URL}/api/auth/verify-otp`;
+      
+      const requestBody = type === 'register'
+        ? { username: username, otpCode: otpString }
+        : { userId: userId, otpCode: otpString };
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        verifiedRef.current = true; // Mark as verified to prevent cancellation
+        
+        if (type === 'register') {
+          // Registration verification successful
+          showToast('Registration verified successfully! Please login.', 'success');
+          
+          // Disconnect socket before redirecting
+          if (socketRef.current && socketRef.current.connected) {
+            socketRef.current.disconnect();
+          }
+          
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        } else {
+          // Login verification successful
+          showToast('Login successful!', 'success');
+          
           // Save tokens for further requests
           localStorage.setItem('accessToken', data.accessToken);
           localStorage.setItem('refreshToken', data.refreshToken);
-          // Optionally save user info if needed
           localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Disconnect socket before redirecting
+          if (socketRef.current && socketRef.current.connected) {
+            socketRef.current.disconnect();
+          }
+          
           refreshAuth(); // force App rerender to update auth state
-          navigate('/chats');
-        } else {
-          const errData = await response.json();
-          setError(errData.message || 'OTP verification failed.');
+          
+          // Redirect to chats after a short delay
+          setTimeout(() => {
+            navigate('/chats');
+          }, 1000);
         }
-      } catch (err) {
-        setError('Unable to connect to server. Please try again later.');
+      } else {
+        setError(data.error || data.message || 'OTP verification failed.');
+        showToast(data.error || data.message || 'OTP verification failed. Please try again.', 'error');
+        
+        // If OTP expired, redirect back
+        if (data.error && data.error.includes('expired')) {
+          setTimeout(() => {
+            if (socketRef.current && socketRef.current.connected) {
+              socketRef.current.disconnect();
+            }
+            navigate(type === 'register' ? '/register' : '/login', {
+              state: { message: 'OTP expired. Please try again.' }
+            });
+          }, 3000);
+        }
       }
-    } else {
-      setError('Please enter the 6-digit code.');
+    } catch (err) {
+      console.error('OTP verification error:', err);
+      setError('Unable to connect to server. Please try again later.');
+      showToast('Unable to connect to server. Please try again later.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleResend = () => {
-    if (canResend) {
-      // Here you would resend OTP via backend
-      setTimer(60);
-      setCanResend(false);
-      setOtp(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+  const handleResend = async () => {
+    if (!canResend) return;
+    
+    setLoading(true);
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      
+      const endpoint = type === 'register'
+        ? `${API_URL}/api/auth/resend-registration-otp`
+        : `${API_URL}/api/auth/resend-otp`;
+      
+      const requestBody = type === 'register'
+        ? { username: username }
+        : { userId: userId, otpType: 'login' };
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        showToast('OTP resent successfully!', 'success');
+        setTimer(data.expiresIn || 300);
+        setCanResend(false);
+        setOtp(['', '', '', '', '', '']);
+        inputRefs.current[0]?.focus();
+      } else {
+        showToast(data.error || data.message || 'Failed to resend OTP', 'error');
+        
+        // If no pending session, redirect back
+        if (data.error && (data.error.includes('No pending') || data.error.includes('expired'))) {
+          setTimeout(() => {
+            if (socketRef.current && socketRef.current.connected) {
+              socketRef.current.disconnect();
+            }
+            navigate(type === 'register' ? '/register' : '/login');
+          }, 2000);
+        }
+      }
+    } catch (err) {
+      console.error('Resend OTP error:', err);
+      showToast('Unable to resend OTP. Please try again.', 'error');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    verifiedRef.current = false;
+    
+    if (socketRef.current && socketRef.current.connected) {
+      if (type === 'register') {
+        socketRef.current.emit('cancel_registration', { username });
+      } else {
+        socketRef.current.emit('cancel_login', { userId });
+      }
+      socketRef.current.disconnect();
+    }
+    
+    showToast(`${type === 'register' ? 'Registration' : 'Login'} cancelled.`, 'info');
+    navigate(type === 'register' ? '/register' : '/login');
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -145,25 +394,45 @@ const OTPVerification = () => {
           <button
             type="submit"
             className="btn-primary btn-verify"
-            disabled={otp.join('').length !== 6}
+            disabled={otp.join('').length !== 6 || loading}
           >
-            Verify & Continue
+            {loading ? 'Verifying...' : 'Verify & Continue'}
           </button>
         </form>
 
         <div className="otp-footer">
           <p className="timer-text">
+            Time remaining: <strong>{formatTime(timer)}</strong>
+          </p>
+          <p className="timer-text">
             {canResend ? (
               <span>
                 Didn't receive the code?{' '}
-                <button className="resend-btn" onClick={handleResend}>
-                  Resend
+                <button className="resend-btn" onClick={handleResend} disabled={loading}>
+                  Resend OTP
                 </button>
               </span>
             ) : (
-              <span>Resend code in {timer}s</span>
+              <span>You can resend OTP in {formatTime(timer)}</span>
             )}
           </p>
+          
+          <button 
+            className="cancel-btn" 
+            onClick={handleCancel}
+            disabled={loading}
+            style={{
+              marginTop: '15px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Cancel {type === 'register' ? 'Registration' : 'Login'}
+          </button>
         </div>
       </div>
     </div>

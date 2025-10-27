@@ -30,8 +30,9 @@ const ChatHome = () => {
   const fetchUserProfile = async (otherUserId) => {
     if (userProfiles[otherUserId] || otherUserId === userId) return;
     try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:3001/api/users/public/id/${otherUserId}`, {
+      const res = await fetch(`${API_URL}/api/users/public/id/${otherUserId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -45,7 +46,7 @@ const ChatHome = () => {
         if (userData.profile_pic) {
           // Extract filename from path like /uploads/25002-xxx.jpg
           const filename = userData.profile_pic.split('/uploads/').pop();
-          userData.profile_pic = `http://localhost:3001/uploads/profiles/${filename}`;
+          userData.profile_pic = `${API_URL}/uploads/profiles/${filename}`;
         }
         
         setUserProfiles(prev => ({
@@ -62,9 +63,10 @@ const ChatHome = () => {
   const fetchChatImage = async (chatId, imagePath) => {
     if (chatImages[chatId] || !imagePath) return;
     try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const token = localStorage.getItem('accessToken');
       const filename = imagePath.split('/uploads/').pop();
-      const res = await fetch(`http://localhost:3001/uploads/chat-images/${filename}`, {
+      const res = await fetch(`${API_URL}/uploads/chat-images/${filename}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -90,8 +92,9 @@ const ChatHome = () => {
         return;
       }
       try {
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
         const token = localStorage.getItem('accessToken');
-        const res = await fetch(`http://localhost:3001/api/chats/user/${userId}/preview`, {
+        const res = await fetch(`${API_URL}/api/chats/user/${userId}/preview`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -107,7 +110,7 @@ const ChatHome = () => {
             return;
           }
           try {
-            const refreshRes = await fetch('http://localhost:3001/api/auth/refresh-token', {
+            const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken: String(refreshToken) }),
@@ -186,8 +189,9 @@ const ChatHome = () => {
       // Refetch chats to update the preview
       const fetchChatsUpdate = async () => {
         try {
+          const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
           const token = localStorage.getItem('accessToken');
-          const res = await fetch(`http://localhost:3001/api/chats/user/${userId}/preview`, {
+          const res = await fetch(`${API_URL}/api/chats/user/${userId}/preview`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -252,8 +256,9 @@ const ChatHome = () => {
     }
 
     try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:3001/api/users/public/search?query=${encodeURIComponent(query)}&page=1&limit=10`, {
+      const res = await fetch(`${API_URL}/api/users/public/search?query=${encodeURIComponent(query)}&page=1&limit=10`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -265,7 +270,7 @@ const ChatHome = () => {
         const usersWithPics = (data.users || []).map(user => {
           if (user.profile_pic) {
             const filename = user.profile_pic.split('/uploads/').pop();
-            user.profile_pic = `http://localhost:3001/uploads/profiles/${filename}`;
+            user.profile_pic = `${API_URL}/uploads/profiles/${filename}`;
           }
           return user;
         });
@@ -300,10 +305,11 @@ const ChatHome = () => {
 
   const handleSelectUser = async (selectedUser) => {
     try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       let token = localStorage.getItem('accessToken');
       
       // Create a new private chat
-      let createChatRes = await fetch('http://localhost:3001/api/chats/', {
+      let createChatRes = await fetch(`${API_URL}/api/chats/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -320,7 +326,7 @@ const ChatHome = () => {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
           try {
-            const refreshRes = await fetch('http://localhost:3001/api/auth/refresh-token', {
+            const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken: String(refreshToken) }),
@@ -331,7 +337,7 @@ const ChatHome = () => {
               token = refreshData.accessToken;
               
               // Retry creating chat with new token
-              createChatRes = await fetch('http://localhost:3001/api/chats/', {
+              createChatRes = await fetch(`${API_URL}/api/chats/`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${token}`,

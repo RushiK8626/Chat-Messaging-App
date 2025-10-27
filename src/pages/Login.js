@@ -38,7 +38,9 @@ const handleSubmit = async (e) => {
 
   if (Object.keys(newErrors).length === 0) {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,14 +52,20 @@ const handleSubmit = async (e) => {
       });
 
       if (response.ok) {
-  const data = await response.json();
-  // Example: you might receive a token or user info
-  localStorage.setItem('authToken', data.token);
-  // Pass username as state for OTP verification
-  navigate('/verify-otp', { state: { username: formData.username } });
+        const data = await response.json();
+        // Navigate to OTP verification with userId and other details
+        navigate('/verify-otp', { 
+          state: { 
+            userId: data.userId,
+            username: data.username,
+            type: 'login',
+            message: data.message,
+            expiresIn: data.expiresIn || 300
+          } 
+        });
       } else {
         const errData = await response.json();
-        setErrors({ api: errData.message || 'Login failed. Please try again.' });
+        setErrors({ api: errData.error || errData.message || 'Login failed. Please try again.' });
       }
     } catch (error) {
       setErrors({ api: 'Unable to connect to server. Please try again later.' });
@@ -81,6 +89,8 @@ const handleSubmit = async (e) => {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
+          {errors.api && <div className="error-text" style={{ color: 'red', marginBottom: '16px', textAlign: 'center' }}>{errors.api}</div>}
+          
           <div className="form-group">
             <label htmlFor="username">Username or Email</label>
             <div className="input-wrapper">

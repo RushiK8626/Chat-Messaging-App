@@ -101,12 +101,13 @@ const ChatInfoModal = ({
         
         if (res.ok) {
           const data = await res.json();
-          // API returns { chat: {...} } so store the whole response
-          setChatDetails(data);
+          // API now returns data directly (not nested in 'chat' property)
+          // Wrap it in { chat: data } for consistency with component logic
+          setChatDetails({ chat: data });
           
           // Fetch group image if available
-          if (data.chat?.chat_image) {
-            fetchChatImage(data.chat.chat_image);
+          if (data.chat_image) {
+            fetchChatImage(data.chat_image);
           }
         } else {
           console.error('Failed to fetch group chat info:', res.status, res.statusText);
@@ -275,10 +276,10 @@ const ChatInfoModal = ({
                   <h3>{chatDetails.chat.chat_name}</h3>
                 </div>
                 
-                {chatDetails.chat.group_description && (
+                {chatDetails.chat.description && (
                   <div className="info-section">
                     <label>Description</label>
-                    <p>{chatDetails.chat.group_description}</p>
+                    <p>{chatDetails.chat.description}</p>
                   </div>
                 )}
                 

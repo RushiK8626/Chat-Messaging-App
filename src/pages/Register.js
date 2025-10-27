@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 import './Register.css';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -48,10 +51,50 @@ const Register = () => {
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      localStorage.setItem('pendingAuth', JSON.stringify(formData));
-      navigate('/verify-otp', { state: { type: 'register' } });
+      setLoading(true);
+      try {
+        // Get server URL from environment or use default
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+        
+        const response = await fetch(`${API_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            full_name: formData.fullName,
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.mobile
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showToast('Registration successful! Please verify your OTP.', 'success');
+          // Navigate to OTP verification page
+          navigate('/verify-otp', { 
+            state: { 
+              type: 'register',
+              username: formData.username 
+            } 
+          });
+        } else {
+          showToast(data.message || 'Registration failed. Please try again.', 'error');
+          setErrors({ submit: data.message || 'Registration failed' });
+        }
+      } catch (err) {
+        console.error('Registration error:', err);
+        showToast('Unable to connect to server. Please try again later.', 'error');
+        setErrors({ submit: 'Network error. Please try again.' });
+      } finally {
+        setLoading(false);
+      }
     } else {
       setErrors(newErrors);
+      showToast('Please fill in all required fields correctly.', 'error');
     }
   };
 
@@ -183,9 +226,15 @@ const Register = () => {
             {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
           </div>
 
-          <button type="submit" className="btn-primary btn-register">
-            Create Account
+          <button type="submit" className="btn-primary btn-register" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
+          
+          {errors.submit && (
+            <div className="error-message" style={{ marginTop: '10px', textAlign: 'center', color: '#ef4444' }}>
+              {errors.submit}
+            </div>
+          )}
         </form>
 
         <div className="register-footer">
