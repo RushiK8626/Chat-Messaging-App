@@ -11,13 +11,23 @@ class SocketService {
   constructor() {
     this.socket = null;
     this.isConnected = false;
+    this.userId = null;
   }
 
   connect(userId) {
-    if (this.socket && this.isConnected) {
+    // If already connected with the same user, return existing socket
+    if (this.socket && this.isConnected && this.userId === userId) {
+      console.log('✅ Using existing socket connection');
       return this.socket;
     }
 
+    // If connecting with a different user, disconnect first
+    if (this.socket && this.userId && this.userId !== userId) {
+      console.log('🔄 Switching user, reconnecting socket...');
+      this.disconnect();
+    }
+
+    this.userId = userId;
     const token = localStorage.getItem('accessToken');
     
     this.socket = io(SOCKET_URL, {
@@ -54,30 +64,44 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      this.userId = null;
+      console.log('🔌 Socket disconnected and cleaned up');
     }
   }
 
   // Join a chat room
   joinChat(chatId) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('join_chat', { chatId });
-      console.log(`📥 Joined chat room: ${chatId}`);
+      // Ensure chatId is a number
+      const numericChatId = typeof chatId === 'string' ? parseInt(chatId, 10) : chatId;
+      this.socket.emit('join_chat', { chatId: numericChatId });
+      console.log(`📥 Joined chat room: ${numericChatId}`);
+    } else {
+      console.warn('⚠️ Cannot join chat - socket not connected');
     }
   }
 
   // Leave a chat room
   leaveChat(chatId) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('leave_chat', { chatId });
-      console.log(`📤 Left chat room: ${chatId}`);
+      const numericChatId = typeof chatId === 'string' ? parseInt(chatId, 10) : chatId;
+      this.socket.emit('leave_chat', { chatId: numericChatId });
+      console.log(`📤 Left chat room: ${numericChatId}`);
     }
   }
 
   // Send a text message
   sendMessage(messageData) {
     if (this.socket && this.isConnected) {
-      this.socket.emit('send_message', messageData);
-      console.log('📨 Message sent via socket');
+      // Ensure chat_id is a number
+      const dataToSend = {
+        ...messageData,
+        chat_id: typeof messageData.chat_id === 'string' ? parseInt(messageData.chat_id, 10) : messageData.chat_id
+      };
+      console.log('📨 Sending message via socket:', dataToSend);
+      this.socket.emit('send_message', dataToSend);
+    } else {
+      console.error('❌ Cannot send message - socket not connected');
     }
   }
 

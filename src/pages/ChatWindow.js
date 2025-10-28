@@ -219,10 +219,21 @@ const ChatWindow = () => {
   // Socket.IO setup - Connect and join chat room
   useEffect(() => {
     // Connect to socket
-    socketService.connect(userId);
+    const socket = socketService.connect(userId);
 
-    // Join the chat room
-    socketService.joinChat(chatId);
+    // Function to join chat when socket is ready
+    const joinChatWhenReady = () => {
+      if (socketService.isSocketConnected()) {
+        socketService.joinChat(chatId);
+      } else {
+        // Wait for connection
+        socket.once('connect', () => {
+          socketService.joinChat(chatId);
+        });
+      }
+    };
+
+    joinChatWhenReady();
 
     // Listen for new messages
     const handleNewMessage = (message) => {
@@ -230,7 +241,10 @@ const ChatWindow = () => {
       setMessages(prevMessages => {
         // Check if message already exists by message_id
         const exists = prevMessages.some(m => m.message_id === message.message_id && !m.isOptimistic);
-        if (exists) return prevMessages;
+        if (exists) {
+          console.log('⚠️ Message already exists, skipping');
+          return prevMessages;
+        }
         
         // Remove optimistic message(s) with matching content
         const filteredMessages = prevMessages.filter(m => {
@@ -243,6 +257,10 @@ const ChatWindow = () => {
             m.message_text === message.message_text &&
             m.chat_id === message.chat_id
           );
+          
+          if (isSameMessage) {
+            console.log('✅ Replacing optimistic message with real message');
+          }
           
           return !isSameMessage; // Remove if it matches
         });
@@ -283,18 +301,33 @@ const ChatWindow = () => {
       }
     };
 
+    // Remove any existing listeners first to prevent duplicates
+    if (socket) {
+      socket.off('new_message');
+      socket.off('user_typing');
+      socket.off('user_stopped_typing');
+      socket.off('user_online_status');
+    }
+
+    // Add new listeners
     socketService.onNewMessage(handleNewMessage);
     socketService.onUserTyping(handleUserTyping);
     socketService.onUserStoppedTyping(handleUserStoppedTyping);
     socketService.onUserOnlineStatus(handleUserOnlineStatus);
 
+    console.log('✅ Socket listeners registered for chat:', chatId);
+
     // Cleanup on unmount
     return () => {
+      console.log('🧹 Cleaning up socket listeners for chat:', chatId);
       socketService.leaveChat(chatId);
-      socketService.off('new_message', handleNewMessage);
-      socketService.off('user_typing', handleUserTyping);
-      socketService.off('user_stopped_typing', handleUserStoppedTyping);
-      socketService.off('user_online_status', handleUserOnlineStatus);
+      const socket = socketService.getSocket();
+      if (socket) {
+        socket.off('new_message', handleNewMessage);
+        socket.off('user_typing', handleUserTyping);
+        socket.off('user_stopped_typing', handleUserStoppedTyping);
+        socket.off('user_online_status', handleUserOnlineStatus);
+      }
     };
     // eslint-disable-next-line
   }, [chatId, userId]);
