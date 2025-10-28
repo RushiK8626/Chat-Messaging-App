@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
+// Ensure the configured socket URL does not end with a slash to avoid `//` when joining paths
+const SOCKET_URL = (process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001').replace(/\/+$/, '');
 
 // Debug: Log the Socket URL being used
 console.log('🔌 Socket URL:', SOCKET_URL);

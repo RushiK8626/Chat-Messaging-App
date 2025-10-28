@@ -3,7 +3,8 @@
  * Handles 401 errors by refreshing the access token and retrying the request
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// Ensure the configured base URL does not end with a slash to avoid `//` when joining paths
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 
 // Debug: Log the API URL being used
 console.log('🌐 API Base URL:', API_BASE_URL);
