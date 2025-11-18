@@ -56,6 +56,13 @@ const config = {
       markAllRead: '/api/notifications/read-all',
       delete: (notificationId) => `/api/notifications/${notificationId}`,
     },
+    ai: {
+      smartReplies: '/api/ai/smart-replies',
+      translate: '/api/ai/translate',
+      summarize: '/api/ai/summarize',
+      detectLanguage: '/api/ai/detect-language',
+      conversationStarters: '/api/ai/conversation-starters',
+    },
   },
 };
 

@@ -24,7 +24,10 @@ import {
   UserPlus,
   LogOut,
   ChevronUp, 
-  ChevronDown
+  ChevronDown,
+  Languages,
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import ChatInfoModal from '../components/ChatInfoModal';
 import UpdateGroupInfoModal from '../components/UpdateGroupInfoModal';
@@ -35,6 +38,10 @@ import ContextMenu from '../components/ContextMenu';
 import ConfirmationBox from '../components/ConfirmationBox';
 import MessageStatusIndicator from '../components/MessageStatusIndicator';
 import SystemMessage from '../components/SystemMessage';
+import SmartReplies from '../components/SmartReplies';
+import MessageTranslator from '../components/MessageTranslator';
+import ChatSummary from '../components/ChatSummary';
+import ConversationStarters from '../components/ConversationStarters';
 import useContextMenu from '../hooks/useContextMenu';
 import { useToast } from '../hooks/useToast';
 import useResponsive from '../hooks/useResponsive';
@@ -98,6 +105,13 @@ const ChatWindow = ({ chatId: propChatId, isEmbedded = false, onClose = null, on
   const typingTimeoutRef = useRef(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [searchAddMember, setSearchAddMember] = useState('');
+
+  // AI Features State
+  const [showSmartReplies, setShowSmartReplies] = useState(false);
+  const [showTranslator, setShowTranslator] = useState(false);
+  const [translateMessage, setTranslateMessage] = useState(null);
+  const [showSummary, setShowSummary] = useState(false);
+  const [showConversationStarters, setShowConversationStarters] = useState(false);
   const [addMemberResults, setAddMemberResults] = useState([]);
   const [addMemberLoading, setAddMemberLoading] = useState(false);
   const [selectedUserToAdd, setSelectedUserToAdd] = useState(null);
@@ -971,6 +985,16 @@ const ChatWindow = ({ chatId: propChatId, isEmbedded = false, onClose = null, on
         disabled: !message?.message_text,
       },
       {
+        id: 'translate',
+        label: 'Translate',
+        icon: <Languages size={16} />,
+        onClick: () => {
+          setTranslateMessage(message);
+          setShowTranslator(true);
+        },
+        disabled: !message?.message_text,
+      },
+      {
         id: 'reply',
         label: 'Reply',
         icon: <Reply size={16} />,
@@ -1317,6 +1341,12 @@ const ChatWindow = ({ chatId: propChatId, isEmbedded = false, onClose = null, on
             // e.stopPropagation();
             setShowSearch(!showSearch)
         }
+      },
+      {
+        id: 'summary',
+        label: 'Summarize Chat',
+        icon: <FileText size={16} />,
+        onClick: () => setShowSummary(true),
       },
       {
         id: 'clear',
@@ -2263,6 +2293,16 @@ const ChatWindow = ({ chatId: propChatId, isEmbedded = false, onClose = null, on
             <Smile size={22} />
           </button>
 
+          <button 
+            type="button" 
+            className="ai-btn"
+            onClick={() => setShowSmartReplies(!showSmartReplies)}
+            disabled={uploading}
+            title="Smart Replies"
+          >
+            <Sparkles size={22} />
+          </button>
+
           <button
             type="submit"
             className="send-btn"
@@ -2275,6 +2315,30 @@ const ChatWindow = ({ chatId: propChatId, isEmbedded = false, onClose = null, on
         {/* Typing indicator */}
         {typingUsers.length > 0 && !selectedFile && (
           <TypingIndicator typingUsers={typingUsers} />
+        )}
+
+        {/* AI Features */}
+        {/* Smart Replies */}
+        {showSmartReplies && (
+          <SmartReplies
+            chatId={chatId}
+            onSelectReply={(reply) => {
+              setMessageText(reply);
+              setShowSmartReplies(false);
+            }}
+            disabled={uploading}
+          />
+        )}
+
+        {/* Conversation Starters - show when no messages */}
+        {messages.length === 0 && !loading && (
+          <ConversationStarters
+            chatId={chatId}
+            onSelectStarter={(starter) => {
+              setMessageText(starter);
+            }}
+            disabled={uploading}
+          />
         )}
       </div>
 
@@ -2412,6 +2476,26 @@ const ChatWindow = ({ chatId: propChatId, isEmbedded = false, onClose = null, on
           setSelectedUserToAdd(null);
         }}
       />
+
+      {/* AI Features Modals */}
+      {/* Message Translator */}
+      {showTranslator && translateMessage && (
+        <MessageTranslator
+          messageText={translateMessage.message_text}
+          onClose={() => {
+            setShowTranslator(false);
+            setTranslateMessage(null);
+          }}
+        />
+      )}
+
+      {/* Chat Summary */}
+      {showSummary && (
+        <ChatSummary
+          chatId={chatId}
+          onClose={() => setShowSummary(false)}
+        />
+      )}
       
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />

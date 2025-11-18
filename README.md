@@ -13,6 +13,14 @@ A lightweight React client for the Chat-Messaging-App (ConvoHub). This repositor
 - Split view for wide screens and single-page navigation on mobile.
 - Group creation, private chats, and profile previews.
 - Real-time messages and presence via Socket.IO.
+- **AI-Powered Features**:
+  - 💬 **Smart Replies**: Contextual quick reply suggestions
+  - 🌍 **Message Translation**: Translate messages to 12+ languages
+  - 📝 **Chat Summaries**: Brief, detailed, or bullet-point summaries
+  - 🎯 **Conversation Starters**: AI-generated conversation openers
+  - 🔍 **Language Detection**: Automatic source language detection
+
+> **See [AI_FEATURES.md](./AI_FEATURES.md) for detailed AI features documentation.**
 
 ## Prerequisites
 

@@ -494,7 +494,8 @@
 }
 
 .attach-btn,
-.emoji-btn {
+.emoji-btn,
+.ai-btn {
   background: none;
   border: none;
   color: var(--primary-color);
@@ -507,8 +508,17 @@
 }
 
 .attach-btn:hover,
-.emoji-btn:hover {
+.emoji-btn:hover,
+.ai-btn:hover {
   background: var(--hover-background);
+}
+
+.ai-btn {
+  color: #667eea;
+}
+
+.ai-btn:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 
 .message-input {

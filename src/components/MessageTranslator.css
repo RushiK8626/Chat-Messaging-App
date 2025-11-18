@@ -1,0 +1,322 @@
+/* Message Translator Component Styles */
+
+.message-translator-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.message-translator-container {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.translator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.translator-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.translator-title svg {
+  color: var(--primary-color, #007bff);
+}
+
+.translator-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  transition: all 0.2s ease;
+}
+
+.translator-close-btn:hover {
+  background: var(--hover-bg, #f0f0f0);
+  color: var(--text-primary, #333);
+}
+
+.translator-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.translator-section {
+  margin-bottom: 20px;
+}
+
+.translator-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #666);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.translator-text-box {
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.translator-text-box.original {
+  background: var(--message-bg, #f8f9fa);
+  color: var(--text-primary, #333);
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.translator-text-box.translated {
+  background: var(--primary-light, #e7f3ff);
+  color: var(--text-primary, #333);
+  border: 1px solid var(--primary-color, #007bff);
+}
+
+.translator-language-selector {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.language-selector-btn {
+  width: 100%;
+  padding: 14px 16px;
+  background: white;
+  border: 2px solid var(--primary-color, #007bff);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--primary-color, #007bff);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.language-selector-btn:hover:not(:disabled) {
+  background: var(--primary-light, #e7f3ff);
+}
+
+.language-selector-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.language-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 10;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.language-option {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.language-option:hover {
+  background: var(--hover-bg, #f8f9fa);
+}
+
+.language-option.selected {
+  background: var(--primary-light, #e7f3ff);
+  color: var(--primary-color, #007bff);
+  font-weight: 600;
+}
+
+.language-flag {
+  font-size: 24px;
+}
+
+.language-name {
+  font-size: 15px;
+}
+
+.translator-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 12px;
+  color: var(--text-secondary, #666);
+}
+
+.translator-error {
+  padding: 16px;
+  background: var(--error-light, #ffe0e0);
+  color: var(--error-color, #dc3545);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .message-translator-container {
+    background: var(--bg-dark, #1a1a1a);
+  }
+
+  .translator-header {
+    border-bottom-color: var(--border-color-dark, #333);
+  }
+
+  .translator-title {
+    color: var(--text-primary-dark, #e0e0e0);
+  }
+
+  .translator-text-box.original {
+    background: var(--message-bg-dark, #2a2a2a);
+    color: var(--text-primary-dark, #e0e0e0);
+    border-color: var(--border-color-dark, #444);
+  }
+
+  .translator-text-box.translated {
+    background: rgba(0, 123, 255, 0.1);
+    color: var(--text-primary-dark, #e0e0e0);
+  }
+
+  .language-selector-btn {
+    background: var(--bg-dark, #1a1a1a);
+  }
+
+  .language-list {
+    background: var(--bg-dark, #1a1a1a);
+    border-color: var(--border-color-dark, #444);
+  }
+
+  .language-option:hover {
+    background: var(--hover-bg-dark, #2a2a2a);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .message-translator-container {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .translator-header {
+    padding: 16px;
+  }
+
+  .translator-title {
+    font-size: 16px;
+  }
+
+  .translator-content {
+    padding: 16px;
+  }
+
+  .translator-text-box {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
