@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/ConvoHub/static/css/main.cd3b66df.css",
+    "main.js": "/ConvoHub/static/js/main.016db76d.js",
+    "static/js/453.6641d41e.chunk.js": "/ConvoHub/static/js/453.6641d41e.chunk.js",
+    "index.html": "/ConvoHub/index.html",
+    "main.cd3b66df.css.map": "/ConvoHub/static/css/main.cd3b66df.css.map",
+    "main.016db76d.js.map": "/ConvoHub/static/js/main.016db76d.js.map",
+    "453.6641d41e.chunk.js.map": "/ConvoHub/static/js/453.6641d41e.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.cd3b66df.css",
+    "static/js/main.016db76d.js"
+  ]
+}
