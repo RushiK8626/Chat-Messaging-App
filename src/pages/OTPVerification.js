@@ -324,7 +324,17 @@ const OTPVerification = () => {
         body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get("content-type");
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        // Handle non-JSON responses (like HTML error pages)
+        const text = await response.text();
+        console.error("Received non-JSON response:", text.substring(0, 200));
+        throw new Error("Server returned an invalid response. Please try again later.");
+      }
 
       if (response.ok) {
         verifiedRef.current = true; // Mark as verified to prevent cancellation
@@ -449,7 +459,17 @@ const OTPVerification = () => {
         body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get("content-type");
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        // Handle non-JSON responses (like HTML error pages)
+        const text = await response.text();
+        console.error("Received non-JSON response:", text.substring(0, 200));
+        throw new Error("Server returned an invalid response. Please try again later.");
+      }
 
       if (response.ok) {
         showSuccess("OTP resent successfully!", 1000);

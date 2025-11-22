@@ -138,7 +138,9 @@ const ChatInfoModal = ({
           if (refreshToken) {
             try {
               const refreshRes = await fetch(
-                `${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/auth/refresh-token',
+                `${(
+                  process.env.REACT_APP_API_URL || "http://localhost:3001"
+                ).replace(/\/+$/, "")}/api/auth/refresh-token`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -214,7 +216,9 @@ const ChatInfoModal = ({
           if (refreshToken) {
             try {
               const refreshRes = await fetch(
-                `${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/auth/refresh-token',
+                `${(
+                  process.env.REACT_APP_API_URL || "http://localhost:3001"
+                ).replace(/\/+$/, "")}/api/auth/refresh-token`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

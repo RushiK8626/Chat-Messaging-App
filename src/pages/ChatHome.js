@@ -134,6 +134,11 @@ const ChatHome = () => {
         },
       });
       if (res.ok) {
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error("Received non-JSON response for user profile");
+          return;
+        }
         const data = await res.json();
         const userData = data.user;
 
@@ -225,6 +230,12 @@ const ChatHome = () => {
               setLoading(false);
               return;
             }
+            const contentType = refreshRes.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+              setError("Unable to connect to server. Please check your connection.");
+              setLoading(false);
+              return;
+            }
             const refreshData = await refreshRes.json();
             localStorage.setItem("accessToken", refreshData.accessToken);
             // Retry fetching chats with new token
@@ -238,6 +249,10 @@ const ChatHome = () => {
         }
         if (!res.ok) {
           throw new Error("Failed to fetch chats");
+        }
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Unable to connect to server. Please check your connection.");
         }
         const data = await res.json();
 
@@ -253,7 +268,12 @@ const ChatHome = () => {
           ),
         }));
       } catch (err) {
-        setError(err.message || "Error fetching chats");
+        console.error("Error fetching chats:", err);
+        if (err.message && err.message.includes("Failed to fetch")) {
+          setError("Unable to connect to server. Please check your connection.");
+        } else {
+          setError(err.message || "Error loading chats. Please try again.");
+        }
       } finally {
         setLoading(false);
       }
