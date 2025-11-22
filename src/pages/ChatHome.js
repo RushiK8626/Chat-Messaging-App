@@ -123,7 +123,9 @@ const ChatHome = () => {
   const fetchUserProfile = async (otherUserId) => {
     if (userProfiles[otherUserId] || otherUserId === userId) return;
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
       const res = await fetch(`${API_URL}/api/users/public/id/${otherUserId}`, {
         headers: {
@@ -156,7 +158,9 @@ const ChatHome = () => {
   const fetchChatImage = async (chatId, imagePath) => {
     if (chatImages[chatId] || !imagePath) return;
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
       const filename = imagePath.split("/uploads/").pop();
       const res = await fetch(`${API_URL}/uploads/chat-images/${filename}`, {
@@ -185,8 +189,9 @@ const ChatHome = () => {
         return;
       }
       try {
-        const API_URL =
-          process.env.REACT_APP_API_URL || "http://localhost:3001";
+        const API_URL = (
+          process.env.REACT_APP_API_URL || "http://localhost:3001"
+        ).replace(/\/+$/, "");
         const token = localStorage.getItem("accessToken");
         const res = await fetch(
           `${API_URL}/api/chat-visibility/active/${userId}`,
@@ -684,7 +689,9 @@ const ChatHome = () => {
   const handleMarkAsRead = async (selectedChatId) => {
     if (!selectedChatForMenu && !selectedChatId) return;
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const userId = user.user_id;
@@ -729,7 +736,9 @@ const ChatHome = () => {
       const isPinned =
         selectedChatForMenu.pinned || selectedChatForMenu.is_pinned;
       const action = isPinned ? "unpin" : "pin";
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
       const fullUrl = `${API_URL}/api/chat-visibility/${selectedChatForMenu.chat_id}/${action}`;
 
@@ -775,7 +784,9 @@ const ChatHome = () => {
     if (!confirmed) return;
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
 
       const res = await fetch(`${API_URL}/api/chat-visibility/${chatId}`, {
@@ -813,7 +824,9 @@ const ChatHome = () => {
     if (!confirmed) return;
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
 
       const res = await fetch(
@@ -896,7 +909,9 @@ const ChatHome = () => {
 
     // Fetch the newly created group chat details to add to the list
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       const token = localStorage.getItem("accessToken");
 
       const res = await fetch(`${API_URL}/api/chats/${newChatId}`, {
@@ -1019,7 +1034,9 @@ const ChatHome = () => {
 
     try {
       setIsCreatingChat(true);
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       let token = localStorage.getItem("accessToken");
 
       // Ensure we have the correct user IDs
