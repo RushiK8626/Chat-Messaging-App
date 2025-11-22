@@ -41,8 +41,9 @@ const Login = () => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const API_URL =
-          process.env.REACT_APP_API_URL || "http://localhost:3001";
+        const API_URL = (
+          process.env.REACT_APP_API_URL || "http://localhost:3001"
+        ).replace(/\/+$/, "");
 
         const response = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
@@ -56,8 +57,15 @@ const Login = () => {
           }),
         });
 
+        let data;
+        const contentType = response.headers.get("content-type");
+
         if (response.ok) {
-          const data = await response.json();
+          if (contentType && contentType.includes("application/json")) {
+            data = await response.json();
+          } else {
+            throw new Error("Server returned an invalid response");
+          }
           // Navigate to OTP verification with userId and other details
           navigate("/verify-otp", {
             state: {
@@ -71,14 +79,21 @@ const Login = () => {
         } else if (response.status == 401) {
           showError("Invalid Credentials. Login Failed");
         } else {
-          const errData = await response.json();
-          showError("Login Failed. Please try again");
-          setErrors({
-            api:
-              errData.error ||
-              errData.message ||
-              "Login failed. Please try again.",
-          });
+          if (contentType && contentType.includes("application/json")) {
+            const errData = await response.json();
+            showError("Login Failed. Please try again");
+            setErrors({
+              api:
+                errData.error ||
+                errData.message ||
+                "Login failed. Please try again.",
+            });
+          } else {
+            showError("Unable to connect to server");
+            setErrors({
+              api: "Unable to connect to server. Please try again later.",
+            });
+          }
         }
       } catch (error) {
         showError("Unable to connect to server. Please try again later.");
