@@ -139,7 +139,9 @@ const CreateGroupModal = ({
 
     try {
       setCreating(true);
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       let token = localStorage.getItem("accessToken");
 
       // Prepare member IDs (include current user as admin)

@@ -138,7 +138,7 @@ const ChatInfoModal = ({
           if (refreshToken) {
             try {
               const refreshRes = await fetch(
-                '${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/auth/refresh-token',
+                `${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/auth/refresh-token',
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -214,7 +214,7 @@ const ChatInfoModal = ({
           if (refreshToken) {
             try {
               const refreshRes = await fetch(
-                '${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/auth/refresh-token',
+                `${process.env.REACT_APP_API_URL || "http://localhost:3001"}/api/auth/refresh-token',
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -280,7 +280,9 @@ const ChatInfoModal = ({
 
     try {
       setRemovingMemberId(selectedMemberForRemoval);
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
       let token = localStorage.getItem("accessToken");
 
       let res = await fetch(
@@ -744,3 +746,6 @@ const ChatInfoModal = ({
 };
 
 export default ChatInfoModal;
+
+
+

@@ -301,7 +301,9 @@ const OTPVerification = () => {
 
     setLoading(true);
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
 
       // Use different endpoints based on type
       const endpoint =
@@ -425,7 +427,9 @@ const OTPVerification = () => {
 
     setLoading(true);
     try {
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+      const API_URL = (
+        process.env.REACT_APP_API_URL || "http://localhost:3001"
+      ).replace(/\/+$/, "");
 
       const endpoint =
         type === "register"
